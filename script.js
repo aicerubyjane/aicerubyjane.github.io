@@ -301,7 +301,7 @@ skillTrack?.addEventListener(
     skillTouchCurrentY = touch.clientY;
 
     if (!skillTouchMode) {
-      if (absX > 82 && absX > absY * 2.6) {
+      if (absX > 26 && absX > absY * 1.2) {
         skillTouchMode = "horizontal";
       } else if (absY > 8 && absY >= absX) {
         skillTouchMode = "vertical";
@@ -321,6 +321,12 @@ skillTrack?.addEventListener(
       event.preventDefault();
     }
     skillTouchSuppressClick = true;
+
+    if (!skillTouchMoved) {
+      skillTouchMoved = true;
+      focusSkill(skillTouchStartIndex + (deltaX < 0 ? 1 : -1), true, "smooth");
+      skillTouchLockedScroll = getSkillCenterScroll(activeSkill);
+    }
   },
   { passive: false }
 );
@@ -330,15 +336,18 @@ const finishSkillTouch = (event) => {
   const deltaY = skillTouchCurrentY - skillTouchStartY;
   const absX = Math.abs(deltaX);
   const absY = Math.abs(deltaY);
-  const isHorizontalSwipe = skillTouchMode === "horizontal" && absX > 82 && absX > absY * 2.2;
+  const isHorizontalSwipe = skillTouchMode === "horizontal" && absX > 26 && absX > absY * 1.1;
 
   if (isHorizontalSwipe) {
     if (event.cancelable) {
       event.preventDefault();
     }
     skillTouchSuppressClick = true;
-    skillTouchMoved = true;
-    focusSkill(skillTouchStartIndex + (deltaX < 0 ? 1 : -1), true, isMobileSkill() ? "auto" : "smooth");
+    if (!skillTouchMoved) {
+      focusSkill(skillTouchStartIndex + (deltaX < 0 ? 1 : -1), true, "smooth");
+    } else {
+      focusSkill(activeSkill, true, "smooth");
+    }
     skillTouchLockedScroll = getSkillCenterScroll(activeSkill);
   }
 

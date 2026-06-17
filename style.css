@@ -904,7 +904,7 @@ img {
 @media (max-width: 720px) {
   .site-header {
     position: fixed;
-    top: 10px;
+    top: 20px;
     left: 50%;
     width: calc(100% - 32px);
     margin: 0;
@@ -957,7 +957,7 @@ img {
   margin-left: 0;
   margin-right: 0;
   min-height: auto;
-  padding: 100px 24px 120px;
+  padding: 95px 24px 120px;
     gap: 34px;
     align-content: start;
     align-items: start;
