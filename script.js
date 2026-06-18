@@ -24,6 +24,21 @@ const filterButtons = [...document.querySelectorAll(".filter-button")];
 const projectCards = [...document.querySelectorAll(".project-card")];
 const skillTrack = document.querySelector(".skills-track");
 const skillCards = [...document.querySelectorAll("[data-skill-card]")];
+const themeToggle = document.querySelector(".theme-toggle");
+
+const setTheme = (theme) => {
+  const nextTheme = theme === "dark" ? "dark" : "light";
+  document.documentElement.dataset.theme = nextTheme;
+  localStorage.setItem("portfolio-theme", nextTheme);
+  themeToggle?.setAttribute("aria-pressed", String(nextTheme === "dark"));
+  themeToggle?.setAttribute("aria-label", nextTheme === "dark" ? "Switch to light mode" : "Switch to dark mode");
+};
+
+setTheme(localStorage.getItem("portfolio-theme") || "light");
+
+themeToggle?.addEventListener("click", () => {
+  setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+});
 
 navToggle?.addEventListener("click", () => {
   const isOpen = nav?.classList.toggle("open");
@@ -72,318 +87,259 @@ const activeObserver = new IntersectionObserver(
 sections.forEach((section) => activeObserver.observe(section));
 
 let activeSkill = 0;
-let skillPointerX = 0;
-let skillHovering = false;
-let skillDragging = false;
-let skillDragStartX = 0;
-let skillDragStartScroll = 0;
-let skillDragTriggered = false;
-let skillRaf;
-let skillHoverReady = true;
-let skillTouchSuppressClick = false;
+let skillStepLocked = false;
+let skillClickLocked = false;
+let skillResizeTimer;
 
-const getSkillCenterScroll = (index) => {
-  if (!skillTrack || !skillCards[index]) return 0;
-  const card = skillCards[index];
-  return card.offsetLeft - (skillTrack.clientWidth - card.offsetWidth) / 2;
+const skillPointer = {
+  id: null,
+  down: false,
+  mode: null,
+  stepped: false,
+  startX: 0,
+  startY: 0,
 };
 
-const focusSkill = (index, shouldScroll = true, behavior = "smooth") => {
+const skillViewport = (() => {
+  if (!skillTrack) return null;
+  if (skillTrack.parentElement?.classList.contains("skills-viewport")) {
+    return skillTrack.parentElement;
+  }
+
+  const viewport = document.createElement("div");
+  viewport.className = "skills-viewport";
+  skillTrack.parentNode?.insertBefore(viewport, skillTrack);
+  viewport.appendChild(skillTrack);
+  return viewport;
+})();
+
+const applySkillBaseStyles = () => {
+  if (!skillTrack || !skillViewport) return;
+
+  Object.assign(skillViewport.style, {
+    overflow: "hidden",
+    width: "100%",
+    position: "relative",
+    touchAction: "pan-y",
+  });
+
+  Object.assign(skillTrack.style, {
+    overflow: "visible",
+    scrollBehavior: "auto",
+    scrollSnapType: "none",
+    touchAction: "pan-y",
+    willChange: "transform",
+    transition: "transform 340ms cubic-bezier(0.22, 1, 0.36, 1)",
+  });
+};
+
+const clampSkillIndex = (index) => Math.max(0, Math.min(index, skillCards.length - 1));
+
+const setActiveSkill = (index) => {
   if (!skillCards.length) return;
-  activeSkill = (index + skillCards.length) % skillCards.length;
+  activeSkill = clampSkillIndex(index);
 
   skillCards.forEach((card, cardIndex) => {
     const isActive = cardIndex === activeSkill;
     card.classList.toggle("is-active", isActive);
     card.setAttribute("aria-current", isActive ? "true" : "false");
   });
+};
 
-  if (shouldScroll) {
-    skillTrack?.scrollTo({
-      left: getSkillCenterScroll(activeSkill),
-      behavior,
-    });
+const getSkillTranslateX = (index) => {
+  if (!skillTrack || !skillViewport || !skillCards[index]) return 0;
+
+  const card = skillCards[index];
+  const viewportCenter = skillViewport.clientWidth / 2;
+  const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+
+  return viewportCenter - cardCenter;
+};
+
+const renderSkillPosition = (withTransition = true) => {
+  if (!skillTrack) return;
+
+  skillTrack.style.transition = withTransition
+    ? "transform 340ms cubic-bezier(0.22, 1, 0.36, 1)"
+    : "none";
+
+  skillTrack.style.transform = `translate3d(${getSkillTranslateX(activeSkill)}px, 0, 0)`;
+
+  if (!withTransition) {
+    skillTrack.offsetHeight;
+    skillTrack.style.transition = "transform 340ms cubic-bezier(0.22, 1, 0.36, 1)";
   }
 };
 
-const isMobileSkill = () => window.matchMedia("(max-width: 720px)").matches;
+const focusSkill = (index, withTransition = true) => {
+  if (!skillTrack || !skillCards.length) return;
+  setActiveSkill(index);
+  renderSkillPosition(withTransition);
+};
+
+const unlockSkillStep = () => {
+  window.setTimeout(() => {
+    skillStepLocked = false;
+  }, 360);
+};
+
+const stepSkill = (direction) => {
+  if (!skillCards.length || direction === 0 || skillStepLocked) return;
+
+  const nextIndex = clampSkillIndex(activeSkill + direction);
+  if (nextIndex === activeSkill) return;
+
+  skillStepLocked = true;
+  focusSkill(nextIndex, true);
+  unlockSkillStep();
+};
 
 skillCards.forEach((card, index) => {
   card.setAttribute("role", "button");
   card.setAttribute("tabindex", "0");
+
   card.addEventListener("click", (event) => {
-    if (skillTouchSuppressClick) {
+    if (skillClickLocked) {
       event.preventDefault();
+      event.stopPropagation();
       return;
     }
 
-    focusSkill(index);
+    focusSkill(index, true);
   });
+
   card.addEventListener("keydown", (event) => {
     if (event.key !== "Enter" && event.key !== " ") return;
     event.preventDefault();
-    focusSkill(index);
+    focusSkill(index, true);
   });
 });
 
 skillTrack?.addEventListener("keydown", (event) => {
   if (event.key === "ArrowLeft") {
     event.preventDefault();
-    focusSkill(activeSkill - 1);
+    stepSkill(-1);
   }
 
   if (event.key === "ArrowRight") {
     event.preventDefault();
-    focusSkill(activeSkill + 1);
+    stepSkill(1);
   }
 });
 
-const updateFocusedSkillFromScroll = () => {
-  if (!skillTrack || !skillCards.length) return;
-  const trackCenter = skillTrack.scrollLeft + skillTrack.clientWidth / 2;
-  const cardWidth = skillCards[activeSkill]?.offsetWidth || 1;
-  const currentCenter = skillCards[activeSkill].offsetLeft + cardWidth / 2;
-  const progressFromCurrent = (trackCenter - currentCenter) / cardWidth;
+const skillSurface = skillViewport || skillTrack;
 
-  if (progressFromCurrent > 0.32 && activeSkill < skillCards.length - 1) {
-    focusSkill(activeSkill + 1, false);
-    return;
+skillSurface?.addEventListener("pointerdown", (event) => {
+  if (!event.isPrimary) return;
+  if (event.pointerType === "mouse" && event.button !== 0) return;
+
+  skillPointer.id = event.pointerId;
+  skillPointer.down = true;
+  skillPointer.mode = null;
+  skillPointer.stepped = false;
+  skillPointer.startX = event.clientX;
+  skillPointer.startY = event.clientY;
+
+  skillSurface.setPointerCapture?.(event.pointerId);
+});
+
+skillSurface?.addEventListener("pointermove", (event) => {
+  if (!skillPointer.down || event.pointerId !== skillPointer.id) return;
+
+  const deltaX = event.clientX - skillPointer.startX;
+  const deltaY = event.clientY - skillPointer.startY;
+  const absX = Math.abs(deltaX);
+  const absY = Math.abs(deltaY);
+
+  if (!skillPointer.mode) {
+    if (absX > 12 && absX > absY * 1.18) {
+      skillPointer.mode = "horizontal";
+      skillClickLocked = true;
+      skillSurface.classList.add("is-dragging");
+    } else if (absY > 12 && absY >= absX) {
+      skillPointer.mode = "vertical";
+    }
   }
 
-  if (progressFromCurrent < -0.32 && activeSkill > 0) {
-    focusSkill(activeSkill - 1, false);
-    return;
+  if (skillPointer.mode !== "horizontal") return;
+
+  if (event.cancelable) event.preventDefault();
+
+  if (!skillPointer.stepped && absX > 26) {
+    skillPointer.stepped = true;
+    stepSkill(deltaX < 0 ? 1 : -1);
+  }
+});
+
+const finishSkillPointer = (event) => {
+  if (!skillPointer.down || event.pointerId !== skillPointer.id) return;
+
+  const deltaX = event.clientX - skillPointer.startX;
+  const deltaY = event.clientY - skillPointer.startY;
+  const absX = Math.abs(deltaX);
+  const absY = Math.abs(deltaY);
+
+  if (skillPointer.mode === "horizontal") {
+    if (event.cancelable) event.preventDefault();
+
+    if (!skillPointer.stepped && absX > 26 && absX > absY * 1.15) {
+      stepSkill(deltaX < 0 ? 1 : -1);
+    }
   }
 
-  const closestIndex = skillCards.reduce((closest, card, index) => {
-    const cardCenter = card.offsetLeft + card.offsetWidth / 2;
-    const distance = Math.abs(trackCenter - cardCenter);
-    return distance < closest.distance ? { index, distance } : closest;
-  }, { index: activeSkill, distance: Infinity }).index;
+  skillPointer.id = null;
+  skillPointer.down = false;
+  skillPointer.mode = null;
+  skillPointer.stepped = false;
 
-  if (closestIndex !== activeSkill) {
-    focusSkill(closestIndex, false);
-  }
+  skillSurface?.classList.remove("is-dragging");
+  skillSurface?.releasePointerCapture?.(event.pointerId);
+
+  window.setTimeout(() => {
+    skillClickLocked = false;
+  }, 160);
 };
 
-const animateSkillHoverScroll = () => {
-  if (!skillTrack || !skillHovering || skillDragging) {
-    skillRaf = null;
-    return;
-  }
+skillSurface?.addEventListener("pointerup", finishSkillPointer);
+skillSurface?.addEventListener("pointercancel", finishSkillPointer);
+skillSurface?.addEventListener("lostpointercapture", () => {
+  skillPointer.id = null;
+  skillPointer.down = false;
+  skillPointer.mode = null;
+  skillPointer.stepped = false;
+  skillSurface?.classList.remove("is-dragging");
 
-  const rect = skillTrack.getBoundingClientRect();
-  const relativeX = (skillPointerX - rect.left) / rect.width;
-  const edgeZone = 0.18;
-  let direction = 0;
-
-  if (relativeX < edgeZone) {
-    direction = (relativeX - edgeZone) / edgeZone;
-  }
-
-  if (relativeX > 1 - edgeZone) {
-    direction = (relativeX - (1 - edgeZone)) / edgeZone;
-  }
-
-  if (Math.abs(direction) > 0.45 && skillHoverReady) {
-    skillHoverReady = false;
-    focusSkill(activeSkill + (direction > 0 ? 1 : -1));
-    window.setTimeout(() => {
-      skillHoverReady = true;
-    }, 380);
-  }
-
-  skillRaf = window.requestAnimationFrame(animateSkillHoverScroll);
-};
-
-skillTrack?.addEventListener("pointerenter", (event) => {
-  if (event.pointerType !== "mouse") return;
-  skillHovering = true;
-  skillPointerX = event.clientX;
-  if (!skillRaf) {
-    skillRaf = window.requestAnimationFrame(animateSkillHoverScroll);
-  }
+  window.setTimeout(() => {
+    skillClickLocked = false;
+  }, 160);
 });
 
-skillTrack?.addEventListener("pointermove", (event) => {
-  if (event.pointerType !== "mouse") return;
-
-  if (event.pointerType === "mouse") {
-    skillPointerX = event.clientX;
-  }
-
-  if (!skillDragging) return;
-  if (event.cancelable) {
-    event.preventDefault();
-  }
-
-  if (skillDragTriggered) return;
-
-  const deltaX = event.clientX - skillDragStartX;
-  skillTrack.scrollLeft = skillDragStartScroll - deltaX;
-
-  if (Math.abs(deltaX) > 30) {
-    skillDragTriggered = true;
-    focusSkill(activeSkill + (deltaX < 0 ? 1 : -1));
-  }
-});
-
-skillTrack?.addEventListener("pointerleave", () => {
-  skillHovering = false;
-});
-
-skillTrack?.addEventListener("pointerdown", (event) => {
-  if (event.pointerType !== "mouse" || event.button !== 0) return;
-  skillDragging = true;
-  skillDragTriggered = false;
-  skillDragStartX = event.clientX;
-  skillDragStartScroll = skillTrack.scrollLeft;
-  skillTrack.classList.add("is-dragging");
-  skillTrack.setPointerCapture?.(event.pointerId);
-});
-
-skillTrack?.addEventListener("pointerup", (event) => {
-  if (event.pointerType !== "mouse") return;
-  if (!skillDragging) return;
-  skillDragging = false;
-  skillTrack.classList.remove("is-dragging");
-  skillTrack.releasePointerCapture?.(event.pointerId);
-
-  if (!skillDragTriggered) {
-    updateFocusedSkillFromScroll();
-  }
-
-  focusSkill(activeSkill);
-});
-
-skillTrack?.addEventListener("pointercancel", () => {
-  skillDragging = false;
-  skillDragTriggered = false;
-  skillTrack?.classList.remove("is-dragging");
-});
-
-let skillTouchStartX = 0;
-let skillTouchStartY = 0;
-let skillTouchStartIndex = 0;
-let skillTouchMode = null;
-let skillTouchMoved = false;
-let skillTouchLockedScroll = 0;
-let skillTouchCurrentX = 0;
-let skillTouchCurrentY = 0;
-
-skillTrack?.addEventListener(
-  "touchstart",
+skillSurface?.addEventListener(
+  "wheel",
   (event) => {
-    if (event.touches.length !== 1) return;
-    const touch = event.touches[0];
-    skillTouchStartX = touch.clientX;
-    skillTouchStartY = touch.clientY;
-    skillTouchCurrentX = touch.clientX;
-    skillTouchCurrentY = touch.clientY;
-    skillTouchStartIndex = activeSkill;
-    skillTouchMode = null;
-    skillTouchMoved = false;
-    skillTouchLockedScroll = getSkillCenterScroll(activeSkill);
+    const movement = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+    if (Math.abs(movement) < 8) return;
+
+    event.preventDefault();
+    stepSkill(movement > 0 ? 1 : -1);
+  },
+  { passive: false }
+);
+
+window.addEventListener(
+  "resize",
+  () => {
+    window.clearTimeout(skillResizeTimer);
+    skillResizeTimer = window.setTimeout(() => {
+      renderSkillPosition(false);
+    }, 120);
   },
   { passive: true }
 );
 
-skillTrack?.addEventListener(
-  "touchmove",
-  (event) => {
-    if (event.touches.length !== 1) return;
-    const touch = event.touches[0];
-    const deltaX = touch.clientX - skillTouchStartX;
-    const deltaY = touch.clientY - skillTouchStartY;
-    const absX = Math.abs(deltaX);
-    const absY = Math.abs(deltaY);
-    skillTouchCurrentX = touch.clientX;
-    skillTouchCurrentY = touch.clientY;
-
-    if (!skillTouchMode) {
-      if (absX > 26 && absX > absY * 1.2) {
-        skillTouchMode = "horizontal";
-      } else if (absY > 8 && absY >= absX) {
-        skillTouchMode = "vertical";
-      }
-    }
-
-    if (skillTouchMode === "vertical") {
-      skillTouchSuppressClick = true;
-      return;
-    }
-
-    if (skillTouchMode !== "horizontal") {
-      return;
-    }
-
-    if (event.cancelable) {
-      event.preventDefault();
-    }
-    skillTouchSuppressClick = true;
-
-    if (!skillTouchMoved) {
-      skillTouchMoved = true;
-      focusSkill(skillTouchStartIndex + (deltaX < 0 ? 1 : -1), true, "smooth");
-      skillTouchLockedScroll = getSkillCenterScroll(activeSkill);
-    }
-  },
-  { passive: false }
-);
-
-const finishSkillTouch = (event) => {
-  const deltaX = skillTouchCurrentX - skillTouchStartX;
-  const deltaY = skillTouchCurrentY - skillTouchStartY;
-  const absX = Math.abs(deltaX);
-  const absY = Math.abs(deltaY);
-  const isHorizontalSwipe = skillTouchMode === "horizontal" && absX > 26 && absX > absY * 1.1;
-
-  if (isHorizontalSwipe) {
-    if (event.cancelable) {
-      event.preventDefault();
-    }
-    skillTouchSuppressClick = true;
-    if (!skillTouchMoved) {
-      focusSkill(skillTouchStartIndex + (deltaX < 0 ? 1 : -1), true, "smooth");
-    } else {
-      focusSkill(activeSkill, true, "smooth");
-    }
-    skillTouchLockedScroll = getSkillCenterScroll(activeSkill);
-  }
-
-  skillTouchMode = null;
-  skillTouchMoved = false;
-  window.setTimeout(() => {
-    skillTouchSuppressClick = false;
-  }, 80);
-};
-
-skillTrack?.addEventListener("touchend", finishSkillTouch, { passive: false });
-skillTrack?.addEventListener("touchcancel", finishSkillTouch, { passive: false });
-
-let skillWheelReady = true;
-
-skillTrack?.addEventListener(
-  "wheel",
-  (event) => {
-    const movement = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
-    if (Math.abs(movement) < 10) return;
-
-    event.preventDefault();
-    if (!skillWheelReady) return;
-
-    skillWheelReady = false;
-    focusSkill(activeSkill + (movement > 0 ? 1 : -1));
-    window.setTimeout(() => {
-      skillWheelReady = true;
-    }, 420);
-  },
-  { passive: false }
-);
-
 window.requestAnimationFrame(() => {
+  applySkillBaseStyles();
   focusSkill(0, false);
-  skillTrack?.scrollTo({ left: getSkillCenterScroll(0), behavior: "auto" });
 });
 
 filterButtons.forEach((button) => {

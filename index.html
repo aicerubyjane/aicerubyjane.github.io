@@ -13,14 +13,10 @@
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="#hero" aria-label="Aicerubyjane home">
+    <a class="brand" href="https://github.com/aicerubyjane" target="_blank" rel="noreferrer" aria-label="Aicerubyjane GitHub">
       <img class="brand-avatar" src="assets/aice-profile.png" alt="">
       <span class="brand-name">Aicerubyjane</span>
     </a>
-    <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false">
-      <span></span>
-      <span></span>
-    </button>
     <nav class="site-nav" aria-label="Primary navigation">
       <a href="#about">About</a>
       <a href="#work">What I Do</a>
@@ -29,11 +25,23 @@
       <a href="#journey">Journey</a>
       <a href="#contact">Contact</a>
     </nav>
+    <div class="header-actions">
+      <button class="theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
+        <span aria-hidden="true"></span>
+      </button>
+      <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false">
+        <span></span>
+        <span></span>
+      </button>
+    </div>
   </header>
 
   <main>
     <section class="hero section" id="hero">
-      <img class="hero-bg" src="assets/hero-workspace.png" alt="">
+      <div class="hero-media" aria-hidden="true">
+        <img class="hero-bg hero-bg-light" src="assets/hero-aice.png" alt="">
+        <img class="hero-bg hero-bg-dark" src="assets/hero-aice-dark.png" alt="">
+      </div>
       <div class="hero-shade" aria-hidden="true"></div>
       <div class="hero-content reveal">
         <p class="eyebrow">Frontend Developer based in Indonesia</p>
@@ -82,22 +90,18 @@
       <div class="section-label reveal">What I Do</div>
       <div class="work-grid">
         <article class="feature-card reveal">
-          <span class="card-index">01</span>
           <h3>Responsive Websites</h3>
           <p>I create clean layouts that work well across desktop and mobile screens.</p>
         </article>
         <article class="feature-card reveal">
-          <span class="card-index">02</span>
           <h3>Web Applications</h3>
           <p>I build simple application flows with forms, search, filtering, and dynamic pages.</p>
         </article>
         <article class="feature-card reveal">
-          <span class="card-index">03</span>
           <h3>UI Structure</h3>
           <p>I enjoy organizing page sections, user flows, visual hierarchy, and practical interface details.</p>
         </article>
         <article class="feature-card reveal">
-          <span class="card-index">04</span>
           <h3>Database Systems</h3>
           <p>I practice structuring data for transaction flows, rental systems, profiles, and histories.</p>
         </article>
@@ -117,42 +121,34 @@
       <div class="focus-runner reveal" aria-label="Featured focus areas">
         <div class="focus-track">
           <article class="focus-item">
-            <span>01</span>
             <h3>Interactive Frontend</h3>
             <p>Building layouts, dashboards, and browser-based interactions with HTML, CSS, and JavaScript.</p>
           </article>
           <article class="focus-item">
-            <span>02</span>
             <h3>PHP Web Apps</h3>
             <p>Practicing multi-page flows, forms, sessions, search, filters, and transaction simulations.</p>
           </article>
           <article class="focus-item">
-            <span>03</span>
             <h3>Database-Driven Systems</h3>
             <p>Designing structured data for customers, vehicles, schedules, transactions, and history.</p>
           </article>
           <article class="focus-item">
-            <span>04</span>
             <h3>UI/UX Details</h3>
             <p>Improving visual hierarchy, spacing, responsive behavior, and interface clarity.</p>
           </article>
           <article class="focus-item" aria-hidden="true">
-            <span>01</span>
             <h3>Interactive Frontend</h3>
             <p>Building layouts, dashboards, and browser-based interactions with HTML, CSS, and JavaScript.</p>
           </article>
           <article class="focus-item" aria-hidden="true">
-            <span>02</span>
             <h3>PHP Web Apps</h3>
             <p>Practicing multi-page flows, forms, sessions, search, filters, and transaction simulations.</p>
           </article>
           <article class="focus-item" aria-hidden="true">
-            <span>03</span>
             <h3>Database-Driven Systems</h3>
             <p>Designing structured data for customers, vehicles, schedules, transactions, and history.</p>
           </article>
           <article class="focus-item" aria-hidden="true">
-            <span>04</span>
             <h3>UI/UX Details</h3>
             <p>Improving visual hierarchy, spacing, responsive behavior, and interface clarity.</p>
           </article>
@@ -171,31 +167,26 @@
       <div class="skills-carousel reveal" aria-label="Interactive skill focus">
         <div class="skills-track" tabindex="0">
           <article class="skill-group is-active" data-skill-card>
-            <span class="skill-number">01</span>
             <h3>Frontend</h3>
             <p>Building responsive layouts, interface states, and browser interaction.</p>
             <div class="chips"><span>HTML</span><span>CSS</span><span>JavaScript</span><span>Responsive Design</span></div>
           </article>
           <article class="skill-group" data-skill-card>
-            <span class="skill-number">02</span>
             <h3>Backend</h3>
             <p>Creating simple web app flows, forms, and server-side page structure.</p>
             <div class="chips"><span>PHP</span><span>Laravel</span></div>
           </article>
           <article class="skill-group" data-skill-card>
-            <span class="skill-number">03</span>
             <h3>Database</h3>
             <p>Planning tables, sample data, and relationship structure for app features.</p>
             <div class="chips"><span>MySQL</span></div>
           </article>
           <article class="skill-group" data-skill-card>
-            <span class="skill-number">04</span>
             <h3>Design & Tools</h3>
             <p>Organizing visual hierarchy, layout direction, and development workflow.</p>
             <div class="chips"><span>UI/UX</span><span>Figma</span><span>GitHub</span><span>VS Code</span></div>
           </article>
           <article class="skill-group" data-skill-card>
-            <span class="skill-number">05</span>
             <h3>Currently Practicing</h3>
             <p>Cleaner frontend structure and more polished portfolio presentation.</p>
             <div class="chips"><span>Component spacing</span><span>Interaction details</span><span>Project writing</span></div>
