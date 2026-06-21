@@ -25,6 +25,9 @@ const projectCards = [...document.querySelectorAll(".project-card")];
 const skillTrack = document.querySelector(".skills-track");
 const skillCards = [...document.querySelectorAll("[data-skill-card]")];
 const themeToggle = document.querySelector(".theme-toggle");
+const designCodeSplit = document.querySelector(".design-code .hero-split");
+const designSide = document.querySelector(".design-code .hero-side-design");
+const codeSide = document.querySelector(".design-code .hero-side-code");
 
 const setTheme = (theme) => {
   const nextTheme = theme === "dark" ? "dark" : "light";
@@ -37,7 +40,14 @@ const setTheme = (theme) => {
 setTheme(localStorage.getItem("portfolio-theme") || "light");
 
 themeToggle?.addEventListener("click", () => {
-  setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+  const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+
+  if (document.startViewTransition && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    document.startViewTransition(() => setTheme(nextTheme));
+    return;
+  }
+
+  setTheme(nextTheme);
 });
 
 navToggle?.addEventListener("click", () => {
@@ -353,3 +363,16 @@ filterButtons.forEach((button) => {
     });
   });
 });
+
+const setDesignCodeFocus = (focus) => {
+  if (!designCodeSplit) return;
+
+  designCodeSplit.classList.toggle("is-design-focus", focus === "design");
+  designCodeSplit.classList.toggle("is-code-focus", focus === "code");
+};
+
+if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+  designSide?.addEventListener("pointerenter", () => setDesignCodeFocus("design"));
+  codeSide?.addEventListener("pointerenter", () => setDesignCodeFocus("code"));
+  designCodeSplit?.addEventListener("pointerleave", () => setDesignCodeFocus(null));
+}
