@@ -273,6 +273,51 @@ img {
   background: var(--text);
 }
 
+/* Language Switcher Toggle */
+.lang-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  min-width: 44px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  background: color-mix(in srgb, var(--surface) 84%, transparent);
+  color: var(--text);
+  font-size: 0.74rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+  backdrop-filter: blur(8px);
+}
+
+.lang-toggle:hover {
+  border-color: var(--line-strong);
+  transform: translateY(-1px);
+}
+
+.lang-toggle .lang-text {
+  display: none;
+}
+
+html[data-lang="en"] .lang-toggle .lang-text-en {
+  display: inline;
+}
+
+html[data-lang="id"] .lang-toggle .lang-text-id {
+  display: inline;
+}
+
+/* Language translation visibility rules */
+html[data-lang="en"] [lang="id"] {
+  display: none !important;
+}
+
+html[data-lang="id"] [lang="en"] {
+  display: none !important;
+}
+
 /* ── Scenic Theme Toggle ─────────────────────────────────── */
 
 .theme-toggle {
@@ -1365,7 +1410,7 @@ img {
   transform: translate3d(0, var(--float-y, 8px), 0) scale(0.985) rotate(var(--float-r, 0deg));
   animation: skill-float 5.8s ease-in-out infinite;
   animation-delay: var(--float-delay, 0s);
-  transition: opacity 220ms ease, transform 240ms cubic-bezier(0.22, 1, 0.36, 1), filter 180ms ease, border-color 280ms ease, box-shadow 280ms ease;
+  transition: opacity 220ms ease, filter 180ms ease, border-color 280ms ease, box-shadow 280ms ease;
   will-change: transform;
 }
 

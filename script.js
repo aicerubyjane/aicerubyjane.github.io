@@ -59,13 +59,43 @@ const codeSide = document.querySelector(".design-code .hero-side-code");
 
 const setTheme = (theme) => {
   const nextTheme = theme === "dark" ? "dark" : "light";
+  const currentLang = document.documentElement.dataset.lang || "en";
   document.documentElement.dataset.theme = nextTheme;
   localStorage.setItem("portfolio-theme", nextTheme);
   themeToggle?.setAttribute("aria-pressed", String(nextTheme === "dark"));
-  themeToggle?.setAttribute("aria-label", nextTheme === "dark" ? "Switch to light mode" : "Switch to dark mode");
+  
+  if (nextTheme === "dark") {
+    themeToggle?.setAttribute("aria-label", currentLang === "id" ? "Ganti ke mode terang" : "Switch to light mode");
+  } else {
+    themeToggle?.setAttribute("aria-label", currentLang === "id" ? "Ganti ke mode gelap" : "Switch to dark mode");
+  }
 };
 
+const langToggle = document.querySelector(".lang-toggle");
+const setLanguage = (lang) => {
+  const nextLang = lang === "id" ? "id" : "en";
+  document.documentElement.dataset.lang = nextLang;
+  document.documentElement.setAttribute("lang", nextLang);
+  localStorage.setItem("portfolio-lang", nextLang);
+
+  // Update theme toggle label for correct localization
+  const isDark = document.documentElement.dataset.theme === "dark";
+  if (themeToggle) {
+    if (isDark) {
+      themeToggle.setAttribute("aria-label", nextLang === "id" ? "Ganti ke mode terang" : "Switch to light mode");
+    } else {
+      themeToggle.setAttribute("aria-label", nextLang === "id" ? "Ganti ke mode gelap" : "Switch to dark mode");
+    }
+  }
+};
+
+setLanguage(localStorage.getItem("portfolio-lang") || "en");
 setTheme(localStorage.getItem("portfolio-theme") || "light");
+
+langToggle?.addEventListener("click", () => {
+  const nextLang = document.documentElement.dataset.lang === "id" ? "en" : "id";
+  setLanguage(nextLang);
+});
 
 themeToggle?.addEventListener("click", () => {
   const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
@@ -136,6 +166,7 @@ const skillPointer = {
   stepped: false,
   startX: 0,
   startY: 0,
+  startTranslateX: 0,
 };
 
 const skillViewport = (() => {
@@ -277,6 +308,7 @@ skillSurface?.addEventListener("pointerdown", (event) => {
   skillPointer.stepped = false;
   skillPointer.startX = event.clientX;
   skillPointer.startY = event.clientY;
+  skillPointer.startTranslateX = getSkillTranslateX(activeSkill);
 
   skillSurface.setPointerCapture?.(event.pointerId);
 });
@@ -303,9 +335,10 @@ skillSurface?.addEventListener("pointermove", (event) => {
 
   if (event.cancelable) event.preventDefault();
 
-  if (!skillPointer.stepped && absX > 26) {
-    skillPointer.stepped = true;
-    stepSkill(deltaX < 0 ? 1 : -1);
+  const currentTranslateX = skillPointer.startTranslateX + deltaX;
+  if (skillTrack) {
+    skillTrack.style.transition = "none";
+    skillTrack.style.transform = `translate3d(${currentTranslateX}px, 0, 0)`;
   }
 });
 
@@ -315,14 +348,20 @@ const finishSkillPointer = (event) => {
   const deltaX = event.clientX - skillPointer.startX;
   const deltaY = event.clientY - skillPointer.startY;
   const absX = Math.abs(deltaX);
-  const absY = Math.abs(deltaY);
 
   if (skillPointer.mode === "horizontal") {
     if (event.cancelable) event.preventDefault();
 
-    if (!skillPointer.stepped && absX > 26 && absX > absY * 1.15) {
-      stepSkill(deltaX < 0 ? 1 : -1);
+    const cardWidth = skillCards[0]?.offsetWidth || 340;
+    const threshold = cardWidth * 0.22;
+
+    let direction = 0;
+    if (absX > threshold) {
+      direction = deltaX < 0 ? 1 : -1;
     }
+
+    const nextIndex = clampSkillIndex(activeSkill + direction);
+    focusSkill(nextIndex, true);
   }
 
   skillPointer.id = null;
