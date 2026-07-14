@@ -1,5 +1,38 @@
 document.documentElement.classList.add("js");
 
+// Initialize Lenis smooth scroll if available
+let lenis = null;
+if (typeof Lenis !== "undefined") {
+  lenis = new Lenis({
+    duration: 1.2,
+    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    orientation: "vertical",
+    gestureOrientation: "vertical",
+    smoothWheel: true,
+  });
+
+  function raf(time) {
+    lenis.raf(time);
+    requestAnimationFrame(raf);
+  }
+
+  requestAnimationFrame(raf);
+
+  // Smooth scroll for anchor links
+  document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+    anchor.addEventListener("click", function (e) {
+      const targetId = this.getAttribute("href");
+      if (targetId && targetId !== "#") {
+        const target = document.querySelector(targetId);
+        if (target) {
+          e.preventDefault();
+          lenis.scrollTo(target);
+        }
+      }
+    });
+  });
+}
+
 let lastScrollY = window.scrollY;
 let scrollDirection = "down";
 document.documentElement.classList.add("scroll-down");
