@@ -13,7 +13,7 @@
   --violet: #67f3ce;
   --magenta: #4899ea;
   --cyan: #67f3ce;
-  --hot-gradient: linear-gradient(135deg, #67f3ce 0%, #4899ea 100%);
+  --hot-gradient: linear-gradient(135deg, #67f3ce 0%, #36bce6 50%, #4899ea 100%);
   --glow: rgba(28, 122, 217, 0.15);
   --glow-strong: rgba(28, 122, 217, 0.30);
   --shadow: rgba(28, 122, 217, 0.08);
@@ -37,7 +37,7 @@
   --violet: #22d3ee;
   --magenta: #60a5fa;
   --cyan: #22d3ee;
-  --hot-gradient: linear-gradient(135deg, #22d3ee 0%, #60a5fa 100%);
+  --hot-gradient: linear-gradient(135deg, #22d3ee 0%, #3b82f6 50%, #60a5fa 100%);
   --glow: rgba(96, 165, 250, 0.15);
   --glow-strong: rgba(96, 165, 250, 0.30);
   --shadow: rgba(0, 0, 0, 0.40);
@@ -865,7 +865,7 @@ html[data-lang="id"] l-en {
 .button.primary {
   border-color: transparent;
   background: var(--hot-gradient);
-  color: #fff;
+  color: #0f172a;
   box-shadow: 0 4px 18px var(--glow-strong);
 }
 
@@ -1548,6 +1548,11 @@ html[data-lang="id"] l-en {
   box-shadow: 0 4px 14px var(--glow);
 }
 
+:root[data-theme="dark"] .filter-button:hover,
+:root[data-theme="dark"] .filter-button.active {
+  color: #0b0f19;
+}
+
 .projects-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
@@ -1787,22 +1792,22 @@ html[data-lang="id"] l-en {
   border: none;
   border-radius: var(--radius);
   background: var(--hot-gradient);
-  color: #fff;
+  color: #0f172a;
   box-shadow: 0 8px 40px var(--glow-strong);
 }
 
 .contact-panel .section-label {
-  -webkit-text-fill-color: rgba(255, 255, 255, 0.85);
-  color: rgba(255, 255, 255, 0.85);
+  -webkit-text-fill-color: rgba(15, 23, 42, 0.85);
+  color: rgba(15, 23, 42, 0.85);
 }
 
 .contact-panel h2 {
-  color: #fff;
+  color: #0f172a;
 }
 
 .contact-panel .button.primary {
-  background: #fff;
-  color: var(--accent);
+  background: #0f172a;
+  color: #fff;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
@@ -1810,18 +1815,19 @@ html[data-lang="id"] l-en {
   transform: translateY(-2px) scale(1.03);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
   filter: none;
+  background: #1e293b;
 }
 
 .contact-panel .button.secondary {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
-  color: #fff;
+  background: rgba(15, 23, 42, 0.08);
+  border-color: rgba(15, 23, 42, 0.15);
+  color: #0f172a;
   backdrop-filter: blur(8px);
 }
 
 .contact-panel .button.secondary:hover {
-  background: rgba(255, 255, 255, 0.25);
-  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(15, 23, 42, 0.15);
+  border-color: rgba(15, 23, 42, 0.30);
 }
 
 .site-footer {
