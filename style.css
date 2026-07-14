@@ -52,6 +52,10 @@ html {
   overflow-x: hidden;
 }
 
+.js {
+  scroll-behavior: auto !important;
+}
+
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation-duration: 480ms;
@@ -1809,7 +1813,6 @@ img {
 .js .section.section-in-view .reveal {
   opacity: 1;
   transform: translate3d(0, 0, 0) scale(1);
-  will-change: auto;
 }
 
 .js .section[data-reveal-dir="up"] .reveal {

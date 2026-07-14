@@ -4,10 +4,8 @@ document.documentElement.classList.add("js");
 let lenis = null;
 if (typeof Lenis !== "undefined") {
   lenis = new Lenis({
-    duration: 1.2,
-    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-    orientation: "vertical",
-    gestureOrientation: "vertical",
+    lerp: 0.12,
+    wheelMultiplier: 1.0,
     smoothWheel: true,
   });
 
@@ -35,15 +33,12 @@ if (typeof Lenis !== "undefined") {
 
 let lastScrollY = window.scrollY;
 let scrollDirection = "down";
-document.documentElement.classList.add("scroll-down");
 
 window.addEventListener(
   "scroll",
   () => {
     const currentScrollY = window.scrollY;
     scrollDirection = currentScrollY < lastScrollY ? "up" : "down";
-    document.documentElement.classList.toggle("scroll-up", scrollDirection === "up");
-    document.documentElement.classList.toggle("scroll-down", scrollDirection === "down");
     lastScrollY = currentScrollY;
   },
   { passive: true }
