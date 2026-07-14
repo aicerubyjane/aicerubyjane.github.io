@@ -581,7 +581,7 @@ img {
 }
 
 :root[data-theme="dark"] .hero-bg-light {
-  content: url("assets/hero-aice-dark.png?v=2");
+  content: url("assets/hero-aice-dark.webp?v=2");
   filter: saturate(0.88) contrast(0.96) brightness(0.78);
 }
 
