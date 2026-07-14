@@ -310,11 +310,15 @@ html[data-lang="id"] .lang-toggle .lang-text-id {
 }
 
 /* Language translation visibility rules */
-html[data-lang="en"] [lang="id"] {
+l-en, l-id {
+  display: inline;
+}
+
+html[data-lang="en"] l-id {
   display: none !important;
 }
 
-html[data-lang="id"] [lang="en"] {
+html[data-lang="id"] l-en {
   display: none !important;
 }
 
